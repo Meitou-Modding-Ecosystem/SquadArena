@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    SquadArena (docs/squad-rating.md): a test-only code mod that fights two squads described in a request file and writes the result with a full
+    fight log. SquadRating (the command-line tool) writes the requests and rates the squads. Not for play: it spawns fighters next to the player.
+  -->
+
+  <PropertyGroup>
+    <AssemblyName>SquadArena</AssemblyName>
+    <RootNamespace>SquadArena</RootNamespace>
+    <Version>0.1.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../engine/src/Meitou.Core/Meitou.Core.csproj" Private="false" />
+    <ProjectReference Include="../engine/src/Meitou.Data/Meitou.Data.csproj" Private="false" />
+    <ProjectReference Include="../engine/src/Meitou.Simulation/Meitou.Simulation.csproj" Private="false" />
+    <ProjectReference Include="../engine/src/Meitou.Game/Meitou.Game.csproj" Private="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="meitou.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>
