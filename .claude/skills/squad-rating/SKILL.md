@@ -7,7 +7,7 @@ description: Use when a mod author wants a squad rated, compared or benchmarked 
 
 SquadRating fights squads in a running Meitou through the SquadArena test mod and rates each as the number of Dust Bandits it beats half
 the time. Read `docs/squad-rating.md` for setup, the file format and the commands. Run every command from the user's squads folder:
-`dotnet run --project <MeitouMods>/SquadRating -- <command>`.
+`dotnet run --project <SquadArena>/SquadRating -- <command>`.
 
 ## Writing a squad file from a description
 

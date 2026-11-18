@@ -14,7 +14,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../engine/src/Meitou.Game/Meitou.Game.csproj" />
+    <ProjectReference Include="$(MeitouEngineDir)src/Meitou.Game/Meitou.Game.csproj" />
     <ProjectReference Include="../SquadArena/SquadArena.csproj" Private="true" />
   </ItemGroup>
 

@@ -122,4 +122,20 @@
     <Exec Condition="'@(_PlayMissingMod)' != ''" Command="&quot;$(PlayDotnet)&quot; &quot;$(TargetPath)&quot; @(_PlayMissingMod->'&quot;%(FullPath)&quot;', ' ')" />
   </Target>
 
+  <!--
+    SquadArena's .mod (the two arena factions, docs/squad-rating.md "The arena factions") is written by the SquadRating tool and needs no game
+    install: built here, then run over the empty .mod written above.
+  -->
+  <Target Name="PlaySquadArenaMod" AfterTargets="PlayEmptyMods" Condition="'$(PlayDeploy)' == 'true'">
+    <PropertyGroup>
+      <_PlaySquadRating>$(MSBuildThisFileDirectory)../SquadRating/SquadRating.csproj</_PlaySquadRating>
+      <_PlaySquadRatingDll>$(MSBuildThisFileDirectory)../SquadRating/bin/$(PlayConfiguration)/$(TargetFramework)/SquadRating.dll</_PlaySquadRatingDll>
+    </PropertyGroup>
+    <MSBuild Projects="$(_PlaySquadRating)" Targets="Restore" Properties="Configuration=$(PlayConfiguration);_PlayRestore=true" />
+    <MSBuild Projects="$(_PlaySquadRating)" Targets="Build"
+             Properties="Configuration=$(PlayConfiguration);BuildingInsideVisualStudio=false;BuildProjectReferences=true"
+             RemoveProperties="CurrentSolutionConfigurationContents" />
+    <Exec Command="&quot;$(PlayDotnet)&quot; &quot;$(_PlaySquadRatingDll)&quot; write-mod &quot;$(KenshiModsDir)SquadArena/SquadArena.mod&quot;" />
+  </Target>
+
 </Project>

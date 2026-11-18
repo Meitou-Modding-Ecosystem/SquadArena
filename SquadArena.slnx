@@ -1,8 +1,8 @@
 <Solution>
   <Project Path="Play/Play.csproj" />
-  <Folder Name="/ExampleMod/">
-    <Project Path="ExampleMod/ExampleMod.csproj" />
-    <Project Path="ExampleMod.Tests/ExampleMod.Tests.csproj" />
+  <Folder Name="/SquadArena/">
+    <Project Path="SquadArena/SquadArena.csproj" />
+    <Project Path="SquadRating/SquadRating.csproj" />
   </Folder>
   <Folder Name="/engine/">
     <Project Path="engine/src/Meitou.Core/Meitou.Core.csproj" />

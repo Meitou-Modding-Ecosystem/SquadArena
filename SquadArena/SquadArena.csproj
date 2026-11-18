@@ -11,10 +11,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../engine/src/Meitou.Core/Meitou.Core.csproj" Private="false" />
-    <ProjectReference Include="../engine/src/Meitou.Data/Meitou.Data.csproj" Private="false" />
-    <ProjectReference Include="../engine/src/Meitou.Simulation/Meitou.Simulation.csproj" Private="false" />
-    <ProjectReference Include="../engine/src/Meitou.Game/Meitou.Game.csproj" Private="false" />
+    <ProjectReference Include="$(MeitouEngineDir)src/Meitou.Core/Meitou.Core.csproj" Private="false" />
+    <ProjectReference Include="$(MeitouEngineDir)src/Meitou.Data/Meitou.Data.csproj" Private="false" />
+    <ProjectReference Include="$(MeitouEngineDir)src/Meitou.Simulation/Meitou.Simulation.csproj" Private="false" />
+    <ProjectReference Include="$(MeitouEngineDir)src/Meitou.Game/Meitou.Game.csproj" Private="false" />
   </ItemGroup>
 
   <ItemGroup>

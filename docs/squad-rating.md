@@ -11,9 +11,9 @@ Nothing here changes the engine; it runs on any Meitou build with code mods.
 
 ## Setup
 
-Folders: your MeitouMods clone and a folder of your own for squad files and results (here `squads`, beside the clone).
+Folders: your SquadArena clone and a folder of your own for squad files and results (here `squads`, beside the clone).
 
-1. Build and deploy: open `MeitouMods.slnx` and build `Play` ([play.md](play.md)). It copies SquadArena into `Kenshi\mods\SquadArena` and
+1. Build and deploy: open `SquadArena.slnx` and build `Play` ([play.md](play.md)). It copies SquadArena into `Kenshi\mods\SquadArena` and
    writes `SquadArena.mod` (the arena factions).
 2. In the Meitou launcher, enable **SquadArena** and trust its code.
 3. Make the arena save: load any game, put your character on flat, empty ground away from towns and wildlife, and save it as `squad-arena`.
@@ -21,10 +21,10 @@ Folders: your MeitouMods clone and a folder of your own for squad files and resu
 4. **Go to your squads folder** (`cd ..\squads`) and write `squad-rating.json`:
 
 ```json
-{ "gameExe": "C:\\Users\\you\\source\\repos\\MeitouMods\\engine\\src\\Meitou.Game\\bin\\Release\\net11.0\\MeitouClient.exe" }
+{ "gameExe": "C:\\Users\\you\\source\\repos\\SquadArena\\engine\\src\\Meitou.Game\\bin\\Release\\net11.0\\MeitouClient.exe" }
 ```
 
-Run the tool from that folder as `dotnet run --project ..\MeitouMods\SquadRating -- <command>` (below: `SquadRating <command>`).
+Run the tool from that folder as `dotnet run --project ..\SquadArena\SquadRating -- <command>` (below: `SquadRating <command>`).
 
 ## Commands
 
