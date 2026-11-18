@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    SquadRating (docs/squad-rating.md): the command-line tool mod authors rate squads with. It reads squad files (names or ids), finds records in
+    the install and mod list, captures squads from saves, drives a running Meitou through the agent control channel, sends fights to the
+    SquadArena mod and fits every squad's strength in Dust-bandit equivalents.
+  -->
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>SquadRating</AssemblyName>
+    <RootNamespace>SquadRating</RootNamespace>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../engine/src/Meitou.Game/Meitou.Game.csproj" />
+    <ProjectReference Include="../SquadArena/SquadArena.csproj" Private="true" />
+  </ItemGroup>
+
+</Project>
