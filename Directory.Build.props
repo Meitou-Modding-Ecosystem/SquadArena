@@ -1,0 +1,12 @@
+<Project>
+
+  <!-- The engine's build settings (target framework, warnings as errors, code style), so a mod builds exactly as the game does. -->
+  <Import Project="engine/Directory.Build.props" />
+
+  <!-- A mod's version lives only in its meitou.json: the assembly takes the manifest's "version", so the two never disagree. -->
+  <PropertyGroup Condition="Exists('$(MSBuildProjectDirectory)/meitou.json')">
+    <ModManifestText>$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)/meitou.json'))</ModManifestText>
+    <Version>$([System.Text.RegularExpressions.Regex]::Match($(ModManifestText), '"version"\s*:\s*"([^"]+)"').Groups[1].Value)</Version>
+  </PropertyGroup>
+
+</Project>
