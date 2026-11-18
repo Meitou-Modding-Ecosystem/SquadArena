@@ -1,27 +1,22 @@
-# Meitou mod template
+# SquadArena
 
-Template for a [MeitouClient](https://github.com/Meitou-Modding-Ecosystem/MeitouClient) code mod repo in the Meitou-Modding-Ecosystem
-org. GPL-3.0-or-later.
+Rates Kenshi squads in Dust-bandit equivalents for [MeitouClient](https://github.com/Meitou-Modding-Ecosystem/MeitouClient) mod authors:
+the SquadRating command-line tool writes fights, the test-only SquadArena code mod (`squad.arena`) fights them in a running game, and the
+tool fits each squad's strength. How to set it up and use it: [docs/squad-rating.md](docs/squad-rating.md). Agents use the
+[squad-rating skill](.claude/skills/squad-rating/SKILL.md). GPL-3.0-or-later.
+
+SquadArena spawns fighters next to the player: it is a tool, not a mod to play with.
 
 - Build and run locally with Visual Studio, VS Code or the terminal (this repo's engine or the installed launcher, deployed to the game): [docs/play.md](docs/play.md).
 - Setting up the repos on your machine: [docs/local-development.md](docs/local-development.md).
 - Instructing agents on a change that spans repos: [docs/agents-across-repos.md](docs/agents-across-repos.md).
 
-## Use this template
-
-1. Create the repo from this template on GitHub (Use this template > Create a new repository), then clone it with
-   `git clone --recurse-submodules <your repo URL>`.
-2. Rename `ExampleMod` to your mod's name: the folders `ExampleMod` and `ExampleMod.Tests`, the files inside them named `ExampleMod*`, the
-   `AssemblyName`/`RootNamespace` in both `.csproj` files, the namespaces, and the paths in `MeitouMod.slnx` (rename that file too).
-3. In `meitou.json` set `id` (`<author-or-mod>.<name>`), `assemblies` and `entry`; keep the version only there.
-4. Open the `.slnx` in Visual Studio and press F5 ([docs/play.md](docs/play.md)).
-
 ## Layout
 
 - `engine/`: MeitouClient as a git submodule, pinned to the engine commit the mod builds against. After a pull that moves it:
   `git submodule update --init`.
-- `<Mod>/`: the mod's project and `meitou.json`. `<Mod>.Tests/`: its tests (synthetic worlds, no game install needed).
-  `<Mod>.Data/` (optional): a generator that writes `<Mod>.mod` from the installed game.
+- `SquadArena/`: the arena code mod and `meitou.json`. `SquadRating/`: the command-line tool; its `write-mod` command writes
+  `SquadArena.mod` (Play runs it).
 - `Play/`: one-click build, deploy and run.
 - `Directory.Build.props` imports the engine's, so mods build with the game's settings (warnings are errors).
 

@@ -1,13 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!--
-    The template's mod: rename the folder, this file, the assembly and the namespace to your mod's name (README "Use this template").
-    Built against the game's assemblies, never copied: the game loads them.
+    SquadArena (docs/squad-rating.md): a test-only code mod that fights two squads described in a request file and writes the result with a full
+    fight log. SquadRating (the command-line tool) writes the requests and rates the squads. Not for play: it spawns fighters next to the player.
   -->
 
   <PropertyGroup>
-    <AssemblyName>ExampleMod</AssemblyName>
-    <RootNamespace>ExampleMod</RootNamespace>
+    <AssemblyName>SquadArena</AssemblyName>
+    <RootNamespace>SquadArena</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

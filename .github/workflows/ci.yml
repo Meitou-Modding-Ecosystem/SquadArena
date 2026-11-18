@@ -1,5 +1,6 @@
 name: CI
 on:
+  workflow_dispatch:
   pull_request:
     branches: [beta, main, release]
   push:
@@ -31,7 +32,16 @@ jobs:
           dotnet build Play/Play.csproj -p:KenshiModsDir="$mods/"
           for mod in */meitou.json; do
             name=$(dirname "$mod")
-            for file in "$name.dll" "$name.pdb" meitou.json "$name.mod"; do
+            files="$name.dll $name.pdb meitou.json"
+            # A generated .mod needs the installed game, which CI lacks; a mod without a generator gets an empty one.
+            test -f "$name.Data/$name.Data.csproj" || files="$files $name.mod"
+            for file in $files; do
+              test -f "$mods/$name/$file" || { echo "missing $mods/$name/$file"; ls -R "$mods"; exit 1; }
+            done
+          done
+          # Each locked framework's release folder is deployed beside the mods.
+          for name in $(python3 -c 'import json; print(" ".join(f["folder"] for f in json.load(open("meitou.lock.json"))["frameworks"]))'); do
+            for file in "$name.dll" meitou.json; do
               test -f "$mods/$name/$file" || { echo "missing $mods/$name/$file"; ls -R "$mods"; exit 1; }
             done
           done
