@@ -534,3 +534,6 @@ Meitou.user.props
 # Native libraries built for older macOS releases
 macos-runtime/
 
+
+# Frameworks downloaded from meitou.lock.json
+deps/

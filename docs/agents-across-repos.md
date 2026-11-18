@@ -15,7 +15,7 @@ framework, then mod. One agent session per change, not one per repo.
 | Change | Repo | PR into |
 | --- | --- | --- |
 | Engine hook (event, saved field, command) | MeitouClient | `fork` |
-| Rivalry Core API or behaviour | MeitouMods | `beta` |
+| Rivalry Core API or behaviour | RivalryCore | `beta` |
 | Logistics Core (nodes, edges, owners, stock, transports) | LogisticsCore | `beta` |
 | War Orchestration (combat scenarios on logistics, no story or characters) | WarOrchestration | `beta` |
 | Bast Front melee | BastFront | `beta` |
@@ -38,7 +38,7 @@ and publishes its own, then the Bast Front PR locks both.
 ## Rules to paste into the agent's instructions
 
 ```markdown
-- Repos and owners: engine hooks -> MeitouClient (PR into fork); Rivalry Core -> MeitouMods (beta);
+- Repos and owners: engine hooks -> MeitouClient (PR into fork); Rivalry Core -> RivalryCore (beta);
   Logistics Core -> LogisticsCore (beta); War Orchestration -> WarOrchestration (beta); Bast Front -> BastFront (beta);
   mods -> their own repo (beta); shared CI/packaging -> GutenStructure (beta).
 - Layers: logistics.core -> war.orchestration -> Bast Front. A layer uses the one above only through its public API and
@@ -47,8 +47,8 @@ and publishes its own, then the Bast Front PR locks both.
   when CI is green; link the previous PR.
 - A meitou.lock.json lists every framework in the chain (Bast Front locks War Orchestration AND Logistics Core), all on
   one engine commit, each accepted by the others' dependency ranges.
-- To build against unmerged framework changes, set <Framework>Source (RivalryCoreSource, LogisticsCoreSource,
-  WarOrchestrationSource) in the repo's git-ignored Meitou.user.props to the sibling clone. Never commit Meitou.user.props.
+- To build against unmerged framework changes, set MeitouFrameworkSources (the sibling clones' framework .csproj paths, ';'-separated)
+  and MeitouEngineDir in the repo's git-ignored Meitou.user.props. Never commit Meitou.user.props.
 - A lock points only at an immutable tag: <framework>-<version>-beta.<commit> or <framework>-v<version>, with the
   asset, SHA-256 and engine commit copied from that release's notes. Never the rolling <framework>-beta tag.
 - Never commit inside an engine/ submodule. Move an engine pin only to a commit merged on fork, and keep it equal to the
@@ -62,8 +62,8 @@ and publishes its own, then the Bast Front PR locks both.
 
 ```text
 Change: <what the player should see>
-Repos: MeitouClient (<engine hook>), MeitouMods (<Rivalry Core change>), AshenHand (<mod change>)
-Order: engine -> MeitouMods -> AshenHand, each PR into its integration branch, self-merge when green.
+Repos: MeitouClient (<engine hook>), RivalryCore (<Rivalry Core change>), AshenHand (<mod change>)
+Order: engine -> RivalryCore -> AshenHand, each PR into its integration branch, self-merge when green.
 Build against unmerged changes with the local override; the final mod PR pins the published beta prerelease.
 Follow the cross-repo rules. Report each PR link in order.
 ```

@@ -1,0 +1,7 @@
+{
+  "id": "squad.arena",
+  "version": "0.1.0",
+  "apiVersion": 2,
+  "assemblies": ["SquadArena.dll"],
+  "entry": "SquadArena.ArenaMod"
+}

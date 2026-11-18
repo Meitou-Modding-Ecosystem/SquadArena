@@ -4,10 +4,9 @@
     One-click play from Visual Studio (docs/play.md): building this project builds the engine and every mod of this repo in $(PlayConfiguration),
     copies each mod into the game's mods folder, and its launch profile then runs the engine or the installed Meitou launcher. Its own program
     only writes empty .mod files. A mod is any top-level folder holding meitou.json and <Folder>/<Folder>.csproj: nothing to list here.
+    The frameworks meitou.lock.json names are deployed beside the mods (Meitou.Frameworks.targets), or built from clones (MeitouFrameworkSources).
   -->
 
-  <!-- Machine-local overrides (KenshiDir, KenshiModsDir, PlayConfiguration, PlayDeploy, PlayArguments); git-ignored. -->
-  <Import Project="../Meitou.user.props" Condition="Exists('../Meitou.user.props')" />
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -25,7 +24,7 @@
     <KenshiModsDir Condition="'$(KenshiModsDir)' == ''">$([MSBuild]::EnsureTrailingSlash('$(KenshiDir)'))mods</KenshiModsDir>
     <KenshiModsDir>$([MSBuild]::EnsureTrailingSlash('$(KenshiModsDir)'))</KenshiModsDir>
     <PlayDeploy Condition="'$(PlayDeploy)' == '' and Exists('$(KenshiModsDir)')">true</PlayDeploy>
-    <EngineOutputDir>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../engine/src/Meitou.Game/bin/$(PlayConfiguration)/$(TargetFramework)/'))</EngineOutputDir>
+    <EngineOutputDir>$([System.IO.Path]::GetFullPath('$(MeitouEngineDir)src/Meitou.Game/bin/$(PlayConfiguration)/$(TargetFramework)/'))</EngineOutputDir>
     <EngineExe>$(EngineOutputDir)MeitouClient</EngineExe>
     <EngineExe Condition="$([MSBuild]::IsOSPlatform('Windows'))">$(EngineExe).exe</EngineExe>
     <RunCommand>$(EngineExe)</RunCommand>
@@ -37,8 +36,8 @@
 
   <!-- The engine, built in $(PlayConfiguration) whatever the solution's configuration; referenced (not linked) so restore includes it. -->
   <ItemGroup>
-    <ProjectReference Include="../engine/src/Meitou.Data/Meitou.Data.csproj" />
-    <ProjectReference Include="../engine/src/Meitou.Game/Meitou.Game.csproj" ReferenceOutputAssembly="false" Private="false"
+    <ProjectReference Include="$(MeitouEngineDir)src/Meitou.Data/Meitou.Data.csproj" />
+    <ProjectReference Include="$(MeitouEngineDir)src/Meitou.Game/Meitou.Game.csproj" ReferenceOutputAssembly="false" Private="false"
                       AdditionalProperties="Configuration=$(PlayConfiguration)" />
   </ItemGroup>
 
@@ -52,6 +51,7 @@
       <PlayMod Include="@(_PlayProject)" Condition="Exists('%(RootDir)%(Directory)meitou.json')" ModName="%(Filename)" />
       <PlayGenerator Include="@(PlayMod->'$(MSBuildThisFileDirectory)../%(ModName).Data/%(ModName).Data.csproj')" />
       <PlayGenerator Remove="@(PlayGenerator)" Condition="!Exists('%(FullPath)')" />
+      <PlayFrameworkProject Include="$(MeitouFrameworkSources.Replace('|', ';'))" ModName="%(Filename)" />
     </ItemGroup>
   </Target>
 
@@ -68,16 +68,27 @@
 
   <!-- Inside Visual Studio a project reference is built by VS in the solution's configuration: build the engine here in $(PlayConfiguration). -->
   <Target Name="PlayBuildEngineInVisualStudio" AfterTargets="Build" Condition="'$(BuildingInsideVisualStudio)' == 'true'">
-    <MSBuild Projects="../engine/src/Meitou.Game/Meitou.Game.csproj" Targets="Build"
+    <MSBuild Projects="$(MeitouEngineDir)src/Meitou.Game/Meitou.Game.csproj" Targets="Build"
              Properties="Configuration=$(PlayConfiguration);BuildingInsideVisualStudio=false;BuildProjectReferences=true"
              RemoveProperties="CurrentSolutionConfigurationContents" />
   </Target>
 
   <!-- Copies each mod's assembly, symbols and manifest; skipped (with a message) when the mods folder doesn't exist, as on CI. -->
   <Target Name="PlayDeploy" AfterTargets="PlayBuildMods;PlayBuildEngineInVisualStudio" DependsOnTargets="PlayModFiles" Condition="'$(PlayDeploy)' == 'true'">
-    <MakeDir Directories="@(PlayMod->'$(KenshiModsDir)%(ModName)')" />
+    <MakeDir Directories="@(PlayMod->'$(KenshiModsDir)%(ModName)');@(PlayFrameworkProject->'$(KenshiModsDir)%(ModName)')" />
     <Copy SourceFiles="@(PlayModFile)" DestinationFiles="@(PlayModFile->'$(KenshiModsDir)%(ModName)/%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
     <Message Importance="high" Text="Deployed @(PlayMod->'%(ModName)', ', ') to $(KenshiModsDir)" />
+  </Target>
+
+  <!-- The locked frameworks' release folders, copied whole (assembly, symbols, manifest, .mod) beside the mods. -->
+  <Target Name="PlayDeployFrameworks" AfterTargets="PlayDeploy" DependsOnTargets="MeitouResolveFrameworks" Condition="'$(PlayDeploy)' == 'true'">
+    <ItemGroup>
+      <_PlayFrameworkFile Include="%(MeitouFrameworkFolder.FullPath)/**/*" ModName="%(MeitouFrameworkFolder.ModName)"
+                          Condition="'%(MeitouFrameworkFolder.FullPath)' != ''" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_PlayFrameworkFile)" DestinationFiles="@(_PlayFrameworkFile->'$(KenshiModsDir)%(ModName)/%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" Condition="'@(_PlayFrameworkFile)' != ''" />
+    <Message Importance="high" Text="Deployed frameworks @(MeitouFrameworkFolder->'%(ModName)', ', ') to $(KenshiModsDir)" Condition="'@(MeitouFrameworkFolder)' != ''" />
   </Target>
 
   <Target Name="PlaySkipDeploy" AfterTargets="Build" Condition="'$(PlayDeploy)' != 'true'">
@@ -87,6 +98,7 @@
   <Target Name="PlayModFiles" DependsOnTargets="PlayFindMods">
     <ItemGroup>
       <_PlayModOutput Include="@(PlayMod->'%(RootDir)%(Directory)bin/$(PlayConfiguration)/$(TargetFramework)/%(ModName)')" />
+      <_PlayModOutput Include="@(PlayFrameworkProject->'%(RootDir)%(Directory)bin/$(PlayConfiguration)/$(TargetFramework)/%(ModName)')" />
       <PlayModFile Include="@(_PlayModOutput->'%(Identity).dll');@(_PlayModOutput->'%(Identity).pdb');@(_PlayModOutput->'%(RootDir)%(Directory)meitou.json')" />
     </ItemGroup>
   </Target>
@@ -104,10 +116,26 @@
   <!-- Every mod without a generator gets an empty .mod (the game needs one per mod folder), never replacing one that is there. -->
   <Target Name="PlayEmptyMods" AfterTargets="PlayDeploy" DependsOnTargets="PlayFindMods" Condition="'$(PlayDeploy)' == 'true'">
     <ItemGroup>
-      <_PlayMissingMod Include="@(PlayMod->'$(KenshiModsDir)%(ModName)/%(ModName).mod')"
+      <_PlayMissingMod Include="@(PlayMod->'$(KenshiModsDir)%(ModName)/%(ModName).mod');@(PlayFrameworkProject->'$(KenshiModsDir)%(ModName)/%(ModName).mod')"
                        Condition="!Exists('$(KenshiModsDir)%(ModName)/%(ModName).mod') and !Exists('$(MSBuildThisFileDirectory)../%(ModName).Data/%(ModName).Data.csproj')" />
     </ItemGroup>
     <Exec Condition="'@(_PlayMissingMod)' != ''" Command="&quot;$(PlayDotnet)&quot; &quot;$(TargetPath)&quot; @(_PlayMissingMod->'&quot;%(FullPath)&quot;', ' ')" />
+  </Target>
+
+  <!--
+    SquadArena's .mod (the two arena factions, docs/squad-rating.md "The arena factions") is written by the SquadRating tool and needs no game
+    install: built here, then run over the empty .mod written above.
+  -->
+  <Target Name="PlaySquadArenaMod" AfterTargets="PlayEmptyMods" Condition="'$(PlayDeploy)' == 'true'">
+    <PropertyGroup>
+      <_PlaySquadRating>$(MSBuildThisFileDirectory)../SquadRating/SquadRating.csproj</_PlaySquadRating>
+      <_PlaySquadRatingDll>$(MSBuildThisFileDirectory)../SquadRating/bin/$(PlayConfiguration)/$(TargetFramework)/SquadRating.dll</_PlaySquadRatingDll>
+    </PropertyGroup>
+    <MSBuild Projects="$(_PlaySquadRating)" Targets="Restore" Properties="Configuration=$(PlayConfiguration);_PlayRestore=true" />
+    <MSBuild Projects="$(_PlaySquadRating)" Targets="Build"
+             Properties="Configuration=$(PlayConfiguration);BuildingInsideVisualStudio=false;BuildProjectReferences=true"
+             RemoveProperties="CurrentSolutionConfigurationContents" />
+    <Exec Command="&quot;$(PlayDotnet)&quot; &quot;$(_PlaySquadRatingDll)&quot; write-mod &quot;$(KenshiModsDir)SquadArena/SquadArena.mod&quot;" />
   </Target>
 
 </Project>

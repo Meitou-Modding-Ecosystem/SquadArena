@@ -5,16 +5,18 @@ hash-check themselves.
 
 ## Repos
 
+Each mod repo is named after its mod.
+
 | Repo | Holds | PRs go to |
 | --- | --- | --- |
 | MeitouClient | the engine and its mod hooks | `fork` |
-| MeitouMods | Rivalry Core, shared docs and skills | `beta` |
+| RivalryCore | Rivalry Core framework and its agent skill | `beta` |
 | LogisticsCore | Logistics Core framework | `beta` |
 | WarOrchestration | War Orchestration framework (uses Logistics Core) | `beta` |
 | BastFront | Bast Front melee (uses War Orchestration and Logistics Core) | `beta` |
 | AshenHand | The Ashen Hand (uses Rivalry Core) | `beta` |
 | Husbandry | Husbandry | `beta` |
-| SquadRating | SquadArena mod and the rating tool | `beta` |
+| SquadArena | SquadArena mod and the squad rating tool | `beta` |
 | GutenStructure (TheIvoryDisaster) | shared CI, packaging, release gate, framework lock target | `beta` |
 
 ## Folders
@@ -24,7 +26,7 @@ These steps use eight folders. Set them as variables in every new PowerShell win
 ```powershell
 $Repos     = "C:\Users\<you>\source\repos"
 $Engine    = "$Repos\MeitouClient"
-$Mods      = "$Repos\MeitouMods"
+$Rivalry   = "$Repos\RivalryCore"
 $Ashen     = "$Repos\AshenHand"
 $Husbandry = "$Repos\Husbandry"
 $Logistics = "$Repos\LogisticsCore"
@@ -34,14 +36,15 @@ $Bast      = "$Repos\BastFront"
 
 ## Prerequisites
 
-- .NET 11 SDK (each repo's `global.json` names the version), Git, Visual Studio or Rider.
+- .NET 11 SDK (each repo's `global.json` names the version) and Git.
+- An editor: Visual Studio, VS Code with the C# Dev Kit, or Rider. A terminal alone also works.
 - Kenshi installed. If it is not in `C:\Program Files (x86)\Steam\steamapps\common\Kenshi`, set the `KENSHI_PATH` environment variable
   to its folder.
 
 ## Clone
 
 ```powershell
-git clone --recurse-submodules https://github.com/Meitou-Modding-Ecosystem/MeitouMods.git $Mods
+git clone --recurse-submodules https://github.com/Meitou-Modding-Ecosystem/RivalryCore.git $Rivalry
 git clone --recurse-submodules https://github.com/Meitou-Modding-Ecosystem/AshenHand.git $Ashen
 git clone --recurse-submodules https://github.com/Meitou-Modding-Ecosystem/Husbandry.git $Husbandry
 git clone --recurse-submodules https://github.com/Meitou-Modding-Ecosystem/LogisticsCore.git $Logistics
@@ -63,8 +66,8 @@ dotnet run --project Play
 ```
 
 - The first build downloads each framework named in `meitou.lock.json` into `deps` and stops if its SHA-256 does not match.
-- `dotnet run --project Play` (or F5 on the `Play` project in Visual Studio) copies the locked frameworks and the mod into `Kenshi\mods`
-  and starts the engine.
+- `dotnet run --project Play` copies the locked frameworks and the mod into `Kenshi\mods` and starts the engine. Visual Studio, VS Code
+  and the installed launcher: [play.md](play.md).
 - Enable the frameworks above the mod in the launcher, as for any dependency.
 
 ## Change a framework and a mod together
@@ -72,26 +75,25 @@ dotnet run --project Play
 Point the mod repo at your framework clone:
 
 ```powershell
-Set-Content "$Ashen\Meitou.user.props" "<Project><PropertyGroup><RivalryCoreSource>$Mods</RivalryCoreSource></PropertyGroup></Project>"
+Set-Content "$Ashen\Meitou.user.props" "<Project><PropertyGroup><MeitouFrameworkSources>$Rivalry\RivalryCore\RivalryCore.csproj</MeitouFrameworkSources><MeitouEngineDir>$Rivalry\engine\</MeitouEngineDir></PropertyGroup></Project>"
 ```
 
-- Builds in `$Ashen` now compile Rivalry Core from `$Mods` and use the engine in `$Mods\engine`, and Play deploys that Rivalry Core build.
-- `Meitou.user.props` is git-ignored. If it already holds your Kenshi settings, add the `RivalryCoreSource` line inside its
-  `PropertyGroup` instead.
-- Logistics Core works the same way with `<LogisticsCoreSource>$Logistics</LogisticsCoreSource>`.
+- Builds in `$Ashen` now compile Rivalry Core from `$Rivalry` and use the engine in `$Rivalry\engine`, and Play deploys that Rivalry Core build.
+- `Meitou.user.props` is git-ignored. If it already holds your Kenshi settings, add the two lines inside its `PropertyGroup` instead.
+- `MeitouFrameworkSources` takes framework project paths separated by `;`, e.g. `$Logistics\LogisticsCore\LogisticsCore.csproj`.
+  `MeitouEngineDir` names the engine the framework clone builds on.
 - Delete the line to go back to the locked ZIP.
 
 **Framework chains.** Bast Front's `meitou.lock.json` lists War Orchestration and Logistics Core. To change both frameworks and Bast Front
 together, override both in Bast Front:
 
 ```powershell
-Set-Content "$Bast\Meitou.user.props" "<Project><PropertyGroup><WarOrchestrationSource>$War</WarOrchestrationSource><LogisticsCoreSource>$Logistics</LogisticsCoreSource></PropertyGroup></Project>"
+Set-Content "$Bast\Meitou.user.props" "<Project><PropertyGroup><MeitouFrameworkSources>$War\WarOrchestration\WarOrchestration.csproj;$Logistics\LogisticsCore\LogisticsCore.csproj</MeitouFrameworkSources><MeitouEngineDir>$Bast\engine\</MeitouEngineDir></PropertyGroup></Project>"
 ```
 
-The override passes down, so War Orchestration builds against `$Logistics` too, and the whole build uses the engine in
-`$Logistics\engine`. Override only War Orchestration and it builds against the Logistics Core named in Bast Front's lock.
+The override passes down, so War Orchestration builds against `$Logistics` too, and the whole build uses one engine. Override only War Orchestration and it builds against the Logistics Core named in Bast Front's lock.
 
-To ship it: merge the framework PR into `beta` of `$Mods`, which publishes a prerelease `rivalry-core-<version>-beta.<commit>`. Then, in
+To ship it: merge the framework PR into `beta` of `$Rivalry`, which publishes a prerelease `rivalry-core-<version>-beta.<commit>`. Then, in
 `$Ashen`, set `meitou.lock.json` to that tag and the asset, SHA-256 and engine commit from its release notes, and open the mod PR. In a
 chain, ship top-down: Logistics Core, then a War Orchestration build locking it, then Bast Front locking both. After the framework's
 production release, move the lock to `rivalry-core-v<version>`.
@@ -107,8 +109,8 @@ git -C "$Ashen\engine" checkout FETCH_HEAD
 
 - Don't commit the new engine pointer until the engine PR is merged into `fork`.
 - A mod that uses a framework also needs the framework rebuilt on that engine. Use the framework override above and check out the same
-  engine branch in `$Mods\engine`.
-- Order to land it: engine PR into `fork`, then the framework PR moving `$Mods\engine`, then the mod PR moving its lock and `engine`.
+  engine branch in `$Rivalry\engine`.
+- Order to land it: engine PR into `fork`, then the framework PR moving `$Rivalry\engine`, then the mod PR moving its lock and `engine`.
 
 ## Keep clones current
 
