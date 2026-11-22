@@ -24,8 +24,11 @@ framework, then mod. One agent session per change, not one per repo.
 
 ## Order for a change that crosses repos
 
-1. Engine PR into `fork`, merged.
-2. Framework PR that moves its `engine` pin and makes the change, merged into `beta`. CI publishes the beta prerelease.
+1. Engine PR into `fork`, merged. Engine pins move only to upstream release tags, so the framework and mod PRs that need it wait until
+   upstream (VlcekM/MeitouClient) releases the change. Until then, build against the engine branch locally
+   ([local-development.md](local-development.md#change-the-engine-and-a-mod-together)).
+2. Framework PR that makes the change (and moves its `engine` pin to the release that has what it needs), merged into `beta`. CI publishes
+   the beta prerelease.
 3. Mod PR that moves `meitou.lock.json` to that prerelease (and `engine` to the lock's engine commit), merged into `beta`.
 4. After the framework release is promoted and tagged: a mod PR that moves the lock to `<framework>-v<version>`.
 
@@ -51,8 +54,10 @@ and publishes its own, then the Bast Front PR locks both.
   and MeitouEngineDir in the repo's git-ignored Meitou.user.props. Never commit Meitou.user.props.
 - A lock points only at an immutable tag: <framework>-<version>-beta.<commit> or <framework>-v<version>, with the
   asset, SHA-256 and engine commit copied from that release's notes. Never the rolling <framework>-beta tag.
-- Never commit inside an engine/ submodule. Move an engine pin only to a commit merged on fork, and keep it equal to the
-  lock's engine commit.
+- Never commit inside an engine/ submodule. Pin engine/ to an upstream Meitou release tag (vX.Y.Z of VlcekM/MeitouClient), or
+  with a lock, to the lock's engine commit. Never pin the fork's fork head or a nightly. Move Directory.Build.rsp and every
+  gameVersion floor together, only when the mod needs the newer release (GutenStructure docs/versioning.md).
+- After pulling, run tools/Update-Local.ps1 so local builds use the pinned engine.
 - Don't merge a PR whose lock names a framework build that isn't published yet.
 - Ask before release tags, promotions to main or release, and anything in another author's folder or repo.
 - Report every PR link, in landing order.

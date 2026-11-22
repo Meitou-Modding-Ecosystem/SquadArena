@@ -107,16 +107,28 @@ git -C "$Ashen\engine" fetch origin <engine branch>
 git -C "$Ashen\engine" checkout FETCH_HEAD
 ```
 
-- Don't commit the new engine pointer until the engine PR is merged into `fork`.
+- Don't commit the new engine pointer: engine pins move only to upstream release tags, so the change reaches this repo once upstream
+  releases it.
 - A mod that uses a framework also needs the framework rebuilt on that engine. Use the framework override above and check out the same
   engine branch in `$Rivalry\engine`.
-- Order to land it: engine PR into `fork`, then the framework PR moving `$Rivalry\engine`, then the mod PR moving its lock and `engine`.
+- Order to land it: engine PR into `fork`; after upstream releases it, the framework PR moving `$Rivalry\engine` to that release, then the
+  mod PR moving its lock and `engine`.
 
 ## Keep clones current
 
+After every pull, and whenever a build fails with engine types missing (e.g. `The type or namespace name 'RelationCause' could not be
+found`), close Visual Studio and run the update script in the mod's repo:
+
 ```powershell
-git -C $Ashen pull
-git -C $Ashen submodule update --init --recursive
+powershell -ExecutionPolicy Bypass -File "$Ashen\tools\Update-Local.ps1" -Clean -Build
 ```
+
+- It switches to `beta` and pulls it, then updates `engine` and `build/gutenstructure` to the commits `beta` pins (`git pull` alone
+  leaves them on the old ones). `-Branch <name>` pulls another branch.
+- It checks each submodule against its pin and prints the engine version.
+- It flags `MeitouEngineDir` and `MeitouFrameworkSources` in `Meitou.user.props` or the environment: they make the build use another
+  repo's engine or framework instead of this repo's pins. Delete them unless you are changing a framework and a mod together.
+- `-Clean` deletes the git-ignored `bin` and `obj` folders, so no build of the old engine is reused. `-Build` runs `dotnet build`.
+- It ends with `Up to date` or a list of lines marked `FIX`.
 
 The next build downloads a framework again only when `meitou.lock.json` changed.
