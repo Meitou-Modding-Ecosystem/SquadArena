@@ -47,7 +47,7 @@ bite:
 | `ci.yml` | build, tests, Engine references (RefCheck), Play deploy on every PR | merge only when green |
 | `meitou-compat.yml` | daily RefCheck against the newest Meitou release, nightly and each floor; one `meitou-compat` issue; opens `Meitou: Admit <tag>` cap-lift PRs | a missing member is a port (skill); a nightly-only problem is a warning |
 | `framework-update.yml` | moves `meitou.lock.json` (and `engine`) to new framework releases, PR into `beta` | a red PR is a regression report: fix it in that PR |
-| `release.yml` | on a tag `<slug>-v<version>` on `release`, packages `<Mod>-<version>.zip` via GutenStructure | tag only when asked |
+| `release.yml` | on each merge into `release`, tags it `<slug>-v<version>` from `meitou.json` and publishes `<Mod>-<version>.zip` via GutenStructure (skips an existing tag) | bump the version to release; `tools\Tag-Release.ps1` only as a fallback when asked |
 
 The template has every workflow; a repo may not have them all yet (`.github/workflows/`).
 
