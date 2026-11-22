@@ -29,4 +29,5 @@ SquadArena spawns fighters next to the player: it is a tool, not a mod to play w
 ## Branches
 
 PRs into `beta`; CI (build and tests) must pass. `beta` is promoted to `main` once tested in play, and production goes through a PR to
-`release`.
+`release`. Each merge into `release` tags it `<slug>-v<version>` and publishes the mod's zip (`.github/workflows/release.yml`) unless that
+tag exists; `tools\Tag-Release.ps1` is the manual fallback.
