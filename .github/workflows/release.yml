@@ -1,0 +1,32 @@
+# Releases the mod: every push to release reads the version from its meitou.json and, unless the tag <slug>-v<version> exists,
+# creates that tag at the release head and publishes <MOD_FOLDER>-<version>.zip (with its SHA-256) holding the folder to drop into
+# Kenshi/mods/, all in one run. A hand-pushed tag (tools/Tag-Release.ps1) does the same as a fallback. Packaging: GutenStructure
+# package-meitou-mod.yml (pinned).
+name: Release
+
+on:
+  push:
+    branches: [release]
+    tags: ["squad-arena-v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  release-gate:
+    permissions:
+      contents: read
+    uses: TheIvoryDisaster/GutenStructure/.github/workflows/release-gate.yml@5b080fca9aef988e032f4ea89b7fb9bdc72db3de
+
+  release:
+    needs: release-gate
+    permissions:
+      contents: write
+    uses: TheIvoryDisaster/GutenStructure/.github/workflows/package-meitou-mod.yml@5b080fca9aef988e032f4ea89b7fb9bdc72db3de
+    with:
+      mod-folder: SquadArena
+      slug: squad-arena
+      channel: release
+      test-project: .
+      # true for a code mod without data: the zip gets an empty SquadArena.mod. false when <Mod>.Data generates one.
+      empty-data-mod: true
