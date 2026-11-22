@@ -1,4 +1,4 @@
-<Project>
+<Project TreatAsLocalProperty="AssemblyVersion">
 
   <!-- Machine-local settings (docs/play.md "Settings", docs/local-development.md); git-ignored. First, so the defaults below yield to it. -->
   <Import Project="Meitou.user.props" Condition="Exists('$(MSBuildThisFileDirectory)Meitou.user.props')" />
@@ -15,6 +15,7 @@
   <PropertyGroup Condition="Exists('$(MSBuildProjectDirectory)/meitou.json')">
     <ModManifestText>$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)/meitou.json'))</ModManifestText>
     <Version>$([System.Text.RegularExpressions.Regex]::Match($(ModManifestText), '"version"\s*:\s*"([^"]+)"').Groups[1].Value)</Version>
+    <AssemblyVersion>$([System.Text.RegularExpressions.Regex]::Match($(Version), '^\d+\.\d+\.\d+').Value).0</AssemblyVersion>
   </PropertyGroup>
 
 </Project>
