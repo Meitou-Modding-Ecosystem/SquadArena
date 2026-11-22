@@ -107,10 +107,12 @@ git -C "$Ashen\engine" fetch origin <engine branch>
 git -C "$Ashen\engine" checkout FETCH_HEAD
 ```
 
-- Don't commit the new engine pointer until the engine PR is merged into `fork`.
+- Don't commit the new engine pointer: engine pins move only to upstream release tags, so the change reaches this repo once upstream
+  releases it.
 - A mod that uses a framework also needs the framework rebuilt on that engine. Use the framework override above and check out the same
   engine branch in `$Rivalry\engine`.
-- Order to land it: engine PR into `fork`, then the framework PR moving `$Rivalry\engine`, then the mod PR moving its lock and `engine`.
+- Order to land it: engine PR into `fork`; after upstream releases it, the framework PR moving `$Rivalry\engine` to that release, then the
+  mod PR moving its lock and `engine`.
 
 ## Keep clones current
 
