@@ -114,9 +114,19 @@ git -C "$Ashen\engine" checkout FETCH_HEAD
 
 ## Keep clones current
 
+After every pull, and whenever a build fails with engine types missing (e.g. `The type or namespace name 'RelationCause' could not be
+found`), close Visual Studio and run the update script in the mod's repo:
+
 ```powershell
-git -C $Ashen pull
-git -C $Ashen submodule update --init --recursive
+powershell -ExecutionPolicy Bypass -File "$Ashen\tools\Update-Local.ps1" -Clean -Build
 ```
+
+- It switches to `beta` and pulls it, then updates `engine` and `build/gutenstructure` to the commits `beta` pins (`git pull` alone
+  leaves them on the old ones). `-Branch <name>` pulls another branch.
+- It checks each submodule against its pin and prints the engine version.
+- It flags `MeitouEngineDir` and `MeitouFrameworkSources` in `Meitou.user.props` or the environment: they make the build use another
+  repo's engine or framework instead of this repo's pins. Delete them unless you are changing a framework and a mod together.
+- `-Clean` deletes the git-ignored `bin` and `obj` folders, so no build of the old engine is reused. `-Build` runs `dotnet build`.
+- It ends with `Up to date` or a list of lines marked `FIX`.
 
 The next build downloads a framework again only when `meitou.lock.json` changed.
