@@ -19,6 +19,9 @@ SquadArena spawns fighters next to the player: it is a tool, not a mod to play w
   `SquadArena.mod` (Play runs it).
 - `Play/`: one-click build, deploy and run.
 - `Directory.Build.props` imports the engine's, so mods build with the game's settings (warnings are errors).
+- `Directory.Build.rsp` stamps the engine references as the oldest Meitou release the mod supports, equal to its `gameVersion` floor: the
+  game refuses a mod referencing a newer engine stamp, and the submodule builds `1.0.0.0`
+  ([versioning](https://github.com/TheIvoryDisaster/GutenStructure/blob/beta/docs/versioning.md)).
 
 ## Branches
 
