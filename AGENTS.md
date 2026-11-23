@@ -58,6 +58,9 @@ A `needs-release` label means the merged change only reaches players after promo
 - Keep docs short: facts and instructions, one place per fact, no progress notes. Update the doc a change affects in the same PR.
 - Setup guides: no `cd` unless the directory changes; bold each directory change; with more than two directories, list them first as
   PowerShell variables and use the variables in every command; precise wording.
+- Task types and dialogue codes: claim only inside the mod's block of 100
+  ([GutenStructure docs/numbers.md](https://github.com/TheIvoryDisaster/GutenStructure/blob/beta/docs/numbers.md)) and list each one in the
+  README's `## Numbers` table (`NumbersTests` checks it).
 - Working across repos (engine, framework, mod in one change): [docs/agents-across-repos.md](docs/agents-across-repos.md).
 
 ## This repo
