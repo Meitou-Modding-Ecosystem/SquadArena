@@ -50,7 +50,7 @@ git clone --recurse-submodules https://github.com/Meitou-Modding-Ecosystem/Husba
 git clone --recurse-submodules https://github.com/Meitou-Modding-Ecosystem/LogisticsCore.git $Logistics
 git clone --recurse-submodules https://github.com/Meitou-Modding-Ecosystem/WarOrchestration.git $War
 git clone --recurse-submodules https://github.com/Meitou-Modding-Ecosystem/BastFront.git $Bast
-git clone https://github.com/Meitou-Modding-Ecosystem/MeitouClient.git $Engine
+git clone https://github.com/Meitou-Modding-Ecosystem/MeitouClientSandbox.git $Engine
 ```
 
 Every mod repo has its own `engine` submodule, so `$Engine` is needed only to write engine hooks.
