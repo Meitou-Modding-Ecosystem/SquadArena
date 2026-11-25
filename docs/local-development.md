@@ -50,7 +50,7 @@ git clone --recurse-submodules https://github.com/Meitou-Modding-Ecosystem/Husba
 git clone --recurse-submodules https://github.com/Meitou-Modding-Ecosystem/LogisticsCore.git $Logistics
 git clone --recurse-submodules https://github.com/Meitou-Modding-Ecosystem/WarOrchestration.git $War
 git clone --recurse-submodules https://github.com/Meitou-Modding-Ecosystem/BastFront.git $Bast
-git clone https://github.com/Meitou-Modding-Ecosystem/MeitouClient.git $Engine
+git clone https://github.com/Meitou-Modding-Ecosystem/MeitouClientSandbox.git $Engine
 ```
 
 Every mod repo has its own `engine` submodule, so `$Engine` is needed only to write engine hooks.
@@ -107,12 +107,49 @@ git -C "$Ashen\engine" fetch origin <engine branch>
 git -C "$Ashen\engine" checkout FETCH_HEAD
 ```
 
-- Don't commit the new engine pointer: engine pins move only to upstream release tags, so the change reaches this repo once upstream
-  releases it.
+- Don't commit the new engine pointer: engine pins move only to upstream tags, so the change reaches this repo with the first upstream
+  nightly that has it (engine-update moves the pin).
 - A mod that uses a framework also needs the framework rebuilt on that engine. Use the framework override above and check out the same
   engine branch in `$Rivalry\engine`.
-- Order to land it: engine PR into `fork`; after upstream releases it, the framework PR moving `$Rivalry\engine` to that release, then the
-  mod PR moving its lock and `engine`.
+- Order to land it: engine PR into `fork`; after an upstream nightly has it and engine-update moved `$Rivalry\engine`, the framework PR,
+  then the mod PR moving its lock and `engine`.
+
+## Switch the engine to play or test
+
+To play the latest upstream, a release or an engine branch, switch your `$Engine` clone with the script in any mod repo:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File "$Ashen\tools\Switch-Engine.ps1" -To Upstream -Path $Engine -Run
+```
+
+- `-To Upstream`: the newest commit of VlcekM/MeitouClient `master` (the script adds the `upstream` remote when missing).
+- `-To Release`: the newest upstream release tag `vX.Y.Z`.
+- `-To Fork`: the org fork's `fork` branch, pulled.
+- `-Branch <name>`: a branch of the org fork, such as an engine PR's branch.
+- Without `-Path` it uses the `MeitouClient` folder next to the mod repo. `-Run` builds the game in Release and starts it; `-Build` only
+  builds it.
+- Upstream, Release and `-Branch` leave the clone on a detached commit; the local `master` and `fork` branches are not changed. The script
+  stops without changing anything when the clone has uncommitted changes.
+- It never touches the mod repo's own `engine` submodule (that is `Update-Local.ps1` and the pins).
+
+## Play every mod on the fork
+
+To play or test the fork's hooks before upstream has them, point every mod repo at one engine, the head of the fork's `fork` branch. Run
+in any mod repo:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File "$Ashen\tools\Use-ForkEngine.ps1"
+```
+
+Then close Visual Studio and every terminal, reopen them, and build Play in each repo whose mod you play.
+
+- It updates `$Engine` (cloned when missing) to the fork's head, fast-forward only, and sets the user environment variable
+  `MeitouEngineDir` to it. Every mod repo's build, Play and Visual Studio then use that engine instead of the repo's `engine` submodule.
+  The solution still lists the submodule's projects; the mods and Play don't use them.
+- Run it again to take the newest fork. `-Status` says which engine builds use. `-Off` removes the variable: each repo builds its own
+  `engine` submodule again (restart Visual Studio and rebuild).
+- It stops without changing anything when `$Engine` has uncommitted changes. `-Path <folder>` uses another clone.
+- Nothing is committed: the repos' engine pins keep following upstream. `Update-Local.ps1` notes when fork mode is on.
 
 ## Keep clones current
 
@@ -126,8 +163,9 @@ powershell -ExecutionPolicy Bypass -File "$Ashen\tools\Update-Local.ps1" -Clean 
 - It switches to `beta` and pulls it, then updates `engine` and `build/gutenstructure` to the commits `beta` pins (`git pull` alone
   leaves them on the old ones). `-Branch <name>` pulls another branch.
 - It checks each submodule against its pin and prints the engine version.
-- It flags `MeitouEngineDir` and `MeitouFrameworkSources` in `Meitou.user.props` or the environment: they make the build use another
-  repo's engine or framework instead of this repo's pins. Delete them unless you are changing a framework and a mod together.
+- It flags `MeitouEngineDir` and `MeitouFrameworkSources` in `Meitou.user.props`: they make the build use another repo's engine or
+  framework instead of this repo's pins. Delete them unless you are changing a framework and a mod together. It notes fork engine mode
+  (the `MeitouEngineDir` environment variable, [above](#play-every-mod-on-the-fork)).
 - `-Clean` deletes the git-ignored `bin` and `obj` folders, so no build of the old engine is reused. `-Build` runs `dotnet build`.
 - It ends with `Up to date` or a list of lines marked `FIX`.
 
