@@ -1,8 +1,10 @@
 {
   "id": "squad.arena",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "apiVersion": 2,
-  "gameVersion": ">=0.20.1",
-  "assemblies": ["SquadArena.dll"],
+  "gameVersion": ">=0.23.0",
+  "assemblies": [
+    "SquadArena.dll"
+  ],
   "entry": "SquadArena.ArenaMod"
 }
