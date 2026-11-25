@@ -2,7 +2,7 @@
   "id": "squad.arena",
   "version": "0.1.2",
   "apiVersion": 2,
-  "gameVersion": ">=0.23.1",
+  "gameVersion": ">=0.23.2",
   "assemblies": [
     "SquadArena.dll"
   ],
