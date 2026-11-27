@@ -3,6 +3,7 @@
   <Folder Name="/SquadArena/">
     <Project Path="SquadArena/SquadArena.csproj" />
     <Project Path="SquadRating/SquadRating.csproj" />
+    <Project Path="SquadRating.Tests/SquadRating.Tests.csproj" />
   </Folder>
   <Folder Name="/engine/">
     <Project Path="engine/src/Meitou.Core/Meitou.Core.csproj" />

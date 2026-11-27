@@ -23,6 +23,7 @@ static class Commands
           compare <squad A> <squad B> [--fights 10]   fight two squads head to head
           bench [--filter <text>] [--fights 8] [--fresh]   rate every town guard and patrol template at squad size 1
           report [--csv <file>]                  the ratings from every fight run in this folder
+          price <price sheet> [--fights 10] [--mixes 0] [--plan] [--table] [--csv <file>]   price each option of a point-buy sheet
           write-mod <file>                       write SquadArena.mod (the two arena factions)
 
         Options for commands that fight: --game <MeitouClient exe> --save <arena save> --headless --attach <control folder>
@@ -43,6 +44,7 @@ static class Commands
             case "compare": Compare(line); break;
             case "bench": Bench(line); break;
             case "report": Report(line, null); break;
+            case "price": Price(line); break;
             case "write-mod": WriteMod(line); break;
             case "" or "help" or "--help": Console.WriteLine(Usage); break;
             default: throw new UsageException($"unknown command; run SquadRating help");
@@ -217,6 +219,104 @@ static class Commands
         Console.WriteLine($"Wrote {path}");
     }
 
+    #region Price lists
+
+    /// <summary>
+    /// <c>price</c>: rates every variant of a price sheet up to <c>--fights</c> fights each (only the shortfall, so a stopped run carries on),
+    /// then prints the price list. <c>--plan</c> lists the variants without fighting; <c>--table</c> prints the list from the fights so far.
+    /// </summary>
+    static void Price(CommandLine line)
+    {
+        var settings = Settings.Load(line);
+        var game = Lookup(settings);
+        var sheet = LoadSheet(line.Word(0, "a price sheet"));
+        var variants = sheet.Variants(line.Int("mixes", 0));
+        var contenders = variants.Select(v => (Variant: v, Contender: Contender(v.Squad, game))).ToList();
+        if (line.Has("plan"))
+        {
+            PrintPlan(contenders, game);
+            return;
+        }
+
+        if (!line.Has("table")) FightVariants(line, settings, game, contenders, line.Int("fights", 10));
+        PrintPrices(line, settings, sheet, contenders.ToDictionary(c => c.Contender.Key.Key, c => c.Variant.Options));
+    }
+
+    /// <summary>
+    /// A price sheet read; a usage error when it does not parse.
+    /// </summary>
+    static PriceSheet LoadSheet(string path)
+    {
+        try
+        {
+            return PriceSheet.Load(path);
+        }
+        catch (Exception e) when (e is InvalidDataException or System.Text.Json.JsonException)
+        {
+            throw new UsageException(e.Message);
+        }
+    }
+
+    /// <summary>
+    /// <c>price --plan</c>: each variant and its resolved member.
+    /// </summary>
+    static void PrintPlan(List<(PriceVariant Variant, Contender Contender)> contenders, GameLookup game)
+    {
+        Console.WriteLine($"{contenders.Count} fighters to rate:");
+        foreach (var (variant, contender) in contenders) Console.WriteLine($"  {variant.Label}: {Describe(contender.Side.Members[0], game.Db)}");
+    }
+
+    /// <summary>
+    /// Climbs the staircase for each variant with fewer than <paramref name="fights"/> fights on the list, for the fights it lacks.
+    /// </summary>
+    static void FightVariants(CommandLine line, Settings settings, GameLookup game, List<(PriceVariant Variant, Contender Contender)> contenders,
+        int fights)
+    {
+        var history = new FightHistory(settings.RunsDir).All();
+        int Had(Contender c) => history.Count(f => f.Sides.Any(s => s.Key == c.Key.Key));
+        var todo = contenders.Select(c => (c.Contender, Need: fights - Had(c.Contender))).Where(t => t.Need > 0).ToList();
+        Console.WriteLine($"Price sheet: {contenders.Count} fighters, {todo.Count} to fight ({todo.Sum(t => t.Need)} fights)");
+        if (todo.Count == 0) return;
+
+        Fight(line, settings, game, (_, ladder) =>
+        {
+            foreach (var (contender, need) in todo)
+            {
+                Console.WriteLine($"Rating {contender.Key.Name}");
+                ladder.Climb(contender, need, 2);
+            }
+        });
+    }
+
+    /// <summary>
+    /// The price list from every fight in the folder.
+    /// </summary>
+    static void PrintPrices(CommandLine line, Settings settings, PriceSheet sheet, Dictionary<string, int[]> variantKeys)
+    {
+        var fights = new FightHistory(settings.RunsDir).All();
+        if (!fights.Any(f => f.Sides.Any(s => variantKeys.ContainsKey(s.Key)))) throw new UsageException("no fights of this sheet yet");
+
+        var lines = PriceModel.Fit(sheet, variantKeys, fights);
+        Console.WriteLine($"\nPrices: {sheet.Name} (1 {settings.Yardstick} = {sheet.PointsPerYardstick:0.#} points)");
+        Console.WriteLine($"{"Group",-22} {"Option",-30} {"Points",7}  {"90% range",-15} {"x base",6} {"Fights",6}");
+        foreach (var p in lines)
+            Console.WriteLine($"{Clip(p.Group, 22),-22} {Clip(p.Name, 30),-30} {p.Points,7:+0;-0;0}  {p.Low,6:0} - {p.High,-6:0} {p.Factor,6:0.00} {p.Fights,6}");
+        if (line.Flag("csv") is { } csv) WritePriceCsv(csv, lines);
+    }
+
+    /// <summary>
+    /// Writes a price list as CSV.
+    /// </summary>
+    static void WritePriceCsv(string path, IEnumerable<PriceLine> prices)
+    {
+        var lines = prices.Select(p => string.Join(',', Quote(p.Group), Quote(p.Name), $"{p.Points:0.0}", $"{p.Low:0.0}", $"{p.High:0.0}",
+            $"{p.Factor:0.000}", p.Fights));
+        File.WriteAllLines(path, ["group,option,points,low90,high90,factor,fights", .. lines]);
+        Console.WriteLine($"Wrote {path}");
+    }
+
+    #endregion
+
     #region Helpers
 
     /// <summary>
@@ -239,6 +339,16 @@ static class Commands
     static Contender Contender(string path, GameLookup game)
     {
         var side = Resolve(path, game);
+        return new Contender(new SideKey(SquadFile.KeyOf(side), side.Name), side);
+    }
+
+    /// <summary>
+    /// A price sheet's variant as a contender; a usage error listing every name that does not resolve.
+    /// </summary>
+    static Contender Contender(SquadFile squad, GameLookup game)
+    {
+        var (side, errors) = squad.Resolve(game);
+        if (side is null) throw new UsageException($"{squad.Name}:\n  {string.Join("\n  ", errors)}");
         return new Contender(new SideKey(SquadFile.KeyOf(side), side.Name), side);
     }
 

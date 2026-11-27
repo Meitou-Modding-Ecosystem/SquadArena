@@ -28,7 +28,7 @@ Block 4700-4799
 - `engine/`: MeitouClient as a git submodule, pinned to the engine commit the mod builds against. `git pull` does not move it: after
   every pull run `powershell -ExecutionPolicy Bypass -File tools\Update-Local.ps1 -Clean -Build`
   ([keep clones current](docs/local-development.md#keep-clones-current)).
-- `SquadArena/`: the arena code mod and `meitou.json`. `SquadRating/`: the command-line tool; its `write-mod` command writes
+- `SquadArena/`: the arena code mod and `meitou.json`. `SquadRating/`: the command-line tool (tests in `SquadRating.Tests/`); its `write-mod` command writes
   `SquadArena.mod` (Play runs it).
 - `Play/`: one-click build, deploy and run.
 - `Directory.Build.props` imports the engine's, so mods build with the game's settings (warnings are errors).

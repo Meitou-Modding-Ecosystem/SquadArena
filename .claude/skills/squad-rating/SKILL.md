@@ -29,9 +29,16 @@ the time. Read `docs/squad-rating.md` for setup, the file format and the command
   for `--headless`.
 - When the user changes a squad file, its old fights stay filed under the old version: the new version is rated from scratch.
 
+## Pricing for a point-buy
+
+1. Write a price sheet (guide "Price lists"): the baseline the point-buy starts from, one option per race, weapon, armour piece, and a stat
+   sweep per skill set. Look up every name with `find`, as for squad files.
+2. `price <sheet> --plan` until every name resolves, then `price <sheet>` (about 10 fights per fighter; long, so it runs on the user's PC).
+   Add `--mixes 10` to check the prices add up.
+3. Report each price with its 90% range; a range wider than the price needs more fights (`--fights 20` adds the missing ones).
+
 ## Reading results
 
 - Give the rating with its 90% range, and say how many fights it rests on. A wide range means more fights (`rate` again adds to it).
 - For why a squad won or lost, read `squad-rating-runs/results/<id>.json`: its `log` has every hit (attacker, weapon, body part, damage after
   armour), every downing, recovery, death and lost limb.
-- Ask the user before adding tests (repo rule), saying what they would catch.

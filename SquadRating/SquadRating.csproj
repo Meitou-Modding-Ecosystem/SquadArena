@@ -14,6 +14,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="SquadRating.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="$(MeitouEngineDir)src/Meitou.Game/Meitou.Game.csproj" />
     <ProjectReference Include="../SquadArena/SquadArena.csproj" Private="true" />
   </ItemGroup>

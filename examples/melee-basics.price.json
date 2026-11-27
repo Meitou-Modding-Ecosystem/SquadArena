@@ -1,0 +1,44 @@
+{
+  "name": "Melee basics",
+  "pointsPerYardstick": 100,
+  "baseline": {
+    "character": "Dust Bandit",
+    "race": "Greenlander",
+    "gear": {
+      "weapon": { "item": "Katana", "maker": "Edgewalkers", "model": "Edge Type 1", "level": 30 },
+      "body": { "item": "Rag Shirt", "quality": 50 }
+    },
+    "stats": {
+      "strength": 30, "toughness": 30, "dexterity": 30, "melee attack": 30, "melee defence": 30, "dodge": 30, "athletics": 30,
+      "katanas": 30, "sabres": 30, "hackers": 30, "heavy weapons": 30, "blunt": 30, "polearms": 30
+    }
+  },
+  "options": [
+    { "name": "Shek", "race": "Shek" },
+    { "name": "Scorchlander", "race": "Scorchlander" },
+    { "name": "Hive Soldier Drone", "race": "Hive Soldier Drone" },
+    { "name": "Skeleton", "race": "Skeleton" },
+
+    { "name": "Nodachi", "gear": { "weapon": { "item": "Nodachi", "maker": "Edgewalkers", "model": "Edge Type 1", "level": 30 } } },
+    { "name": "Wakizashi", "gear": { "weapon": { "item": "Wakizashi", "maker": "Edgewalkers", "model": "Edge Type 1", "level": 30 } } },
+    { "name": "Desert Sabre", "gear": { "weapon": { "item": "Desert Sabre", "maker": "Edgewalkers", "model": "Edge Type 1", "level": 30 } } },
+    { "name": "Fragment Axe", "gear": { "weapon": { "item": "Fragment Axe", "maker": "Edgewalkers", "model": "Edge Type 1", "level": 30 } } },
+    { "name": "Falling Sun", "gear": { "weapon": { "item": "Falling Sun", "maker": "Edgewalkers", "model": "Edge Type 1", "level": 30 } } },
+    { "name": "Heavy Jitte", "gear": { "weapon": { "item": "Heavy Jitte", "maker": "Edgewalkers", "model": "Edge Type 1", "level": 30 } } },
+    { "name": "Iron Club", "gear": { "weapon": { "item": "Iron Club", "maker": "Edgewalkers", "model": "Edge Type 1", "level": 30 } } },
+    { "name": "Naginata", "gear": { "weapon": { "item": "Naginata", "maker": "Edgewalkers", "model": "Edge Type 1", "level": 30 } } },
+    { "name": "Plank", "gear": { "weapon": { "item": "Plank", "maker": "Edgewalkers", "model": "Edge Type 1", "level": 30 } } },
+
+    { "name": "Leather Shirt", "gear": { "body": { "item": "Leather Shirt", "quality": 50 } } },
+    { "name": "Chainmail", "gear": { "body": { "item": "Chainmail", "quality": 50 } } },
+    { "name": "Samurai Armour", "gear": { "body": { "item": "Samurai Armour", "quality": 50 } } },
+    { "name": "Samurai Helmet", "gear": { "head": { "item": "Samurai Helmet", "quality": 50 } } },
+    { "name": "Samurai Legplates", "gear": { "legs": { "item": "Samurai Legplates", "quality": 50 } } }
+  ],
+  "statSweeps": [
+    { "name": "weapon skills", "stats": ["katanas", "sabres", "hackers", "heavy weapons", "blunt", "polearms", "melee attack", "melee defence"],
+      "levels": [10, 50, 70, 90] },
+    { "name": "body stats", "stats": ["strength", "toughness", "dexterity"], "levels": [10, 50, 70, 90] },
+    { "name": "dodge and athletics", "stats": ["dodge", "athletics"], "levels": [10, 50, 70, 90] }
+  ]
+}
