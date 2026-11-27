@@ -23,7 +23,7 @@ static class Commands
           compare <squad A> <squad B> [--fights 10]   fight two squads head to head
           bench [--filter <text>] [--fights 8] [--fresh]   rate every town guard and patrol template at squad size 1
           report [--csv <file>]                  the ratings from every fight run in this folder
-          price <price sheet> [--fights 10] [--mixes 0] [--plan] [--table] [--csv <file>]   price each option of a point-buy sheet
+          price <price sheet> [--fights 10] [--mixes 0] [--shard k/n] [--plan] [--table] [--csv <file>]   price each option of a point-buy sheet
           write-mod <file>                       write SquadArena.mod (the two arena factions)
 
         Options for commands that fight: --game <MeitouClient exe> --save <arena save> --headless --attach <control folder>
@@ -274,7 +274,12 @@ static class Commands
     {
         var history = new FightHistory(settings.RunsDir).All();
         int Had(Contender c) => history.Count(f => f.Sides.Any(s => s.Key == c.Key.Key));
-        var todo = contenders.Select(c => (c.Contender, Need: fights - Had(c.Contender))).Where(t => t.Need > 0).ToList();
+        var shard = Shard.Parse(line.Flag("shard"));
+        var todo = contenders
+            .Where((_, i) => shard.Includes(i))
+            .Select(c => (c.Contender, Need: fights - Had(c.Contender)))
+            .Where(t => t.Need > 0)
+            .ToList();
         Console.WriteLine($"Price sheet: {contenders.Count} fighters, {todo.Count} to fight ({todo.Sum(t => t.Need)} fights)");
         if (todo.Count == 0) return;
 

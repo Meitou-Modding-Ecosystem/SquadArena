@@ -27,11 +27,37 @@ sealed class ControlChannel(string directory)
     {
         long id = NextId();
         var deadline = Stopwatch.StartNew();
-        WaitWhileCommandPending(deadline, timeout);
         string temp = Path.Combine(Directory, $".t{id}");
         File.WriteAllText(temp, $"{id} {command}\n");
-        File.Move(temp, Path.Combine(Directory, "cmd"));
+        Hand(temp, deadline, timeout);
         return AwaitReply(id, command, deadline, timeout);
+    }
+
+    /// <summary>
+    /// Renames the command file to <c>cmd</c> once the game has taken the previous one. A command that timed out can still be waiting, and on a
+    /// slow machine the game may take it only just before the rename, so a rename that finds <c>cmd</c> there again waits once more.
+    /// </summary>
+    void Hand(string temp, Stopwatch elapsed, TimeSpan timeout)
+    {
+        string cmd = Path.Combine(Directory, "cmd");
+        while (true)
+        {
+            try
+            {
+                WaitWhileCommandPending(elapsed, timeout);
+                File.Move(temp, cmd);
+                return;
+            }
+            catch (IOException) when (File.Exists(cmd) && elapsed.Elapsed <= timeout)
+            {
+                Thread.Sleep(100);
+            }
+            catch (Exception e) when (e is ChannelException or IOException)
+            {
+                File.Delete(temp);
+                throw new ChannelException("the game did not take the previous command");
+            }
+        }
     }
 
     /// <summary>

@@ -37,7 +37,7 @@ Run the tool from that folder as `dotnet run --project ..\SquadArena\SquadRating
 | `compare <A> <B> [--fights 10]` | head to head, sides swapped each fight, then both ratings |
 | `bench [--filter <text>] [--fights 8] [--fresh]` | rates every town guard and patrol template at squad size 1; skips templates already rated unless `--fresh` |
 | `report [--csv <file>]` | the ratings from every fight run in this folder |
-| `price <sheet> [--fights 10] [--mixes 0] [--plan] [--table] [--csv <file>]` | prices each option of a point-buy sheet ([Price lists](#price-lists)) |
+| `price <sheet> [--fights 10] [--mixes 0] [--shard k/n] [--plan] [--table] [--csv <file>]` | prices each option of a point-buy sheet ([Price lists](#price-lists)) |
 | `write-mod <file>` | writes `SquadArena.mod` |
 
 Fighting commands start Meitou on the arena save and quit it at the end. `--attach <folder>` uses a Meitou you started yourself with
@@ -128,7 +128,8 @@ fighters, about 310 fights).
 
 `price` rates the baseline and the baseline with each option (and with `--mixes N`, N fighters with one option from each of two or more
 groups), each up to `--fights` fights against Dust Bandits; only the fights a fighter lacks are fought, so a stopped run carries on.
-`--plan` lists the fighters without fighting; `--table` prints the list from the fights so far.
+`--plan` lists the fighters without fighting; `--table` prints the list from the fights so far. `--shard k/n` fights only every n-th fighter
+from the k-th, so n machines can share a sheet: join their `fights.jsonl` files into one folder and run `--table` there.
 
 The fit is the Bradley–Terry model above with a fighter's strength the baseline's plus one effect per option it has, fitted on every fight of
 the sheet's fighters. An option's price is what it adds to the baseline's rating: `points × (exp((b + e)/β) − exp(b/β))`, with a 90% range;
@@ -183,4 +184,5 @@ population, relation -100 to each other. `write-mod` writes it; it holds no game
 `squad-rating.json` (all optional; the flags `--game`, `--kenshi`, `--save`, `--headless`, `--arena`, `--runs` win): `gameExe`, `kenshiDir` (else
 found as the game finds it), `save`
 (`squad-arena`), `headless`, `controlDir`, `arenaDir`, `runsDir` (`squad-rating-runs`), `fightsPerLoad` (8), `spotDistance` (250),
-`timeoutSeconds` (300), `yardstick` (`Dust Bandit`).
+`timeoutSeconds` (300), `loadMinutes` (3: how long a load of the arena save may take), `fightWaitMinutes` (real minutes to wait for a result; default twice the fight's game time at speed 5 plus a minute), `gameArgs` (extra
+arguments for the game the tool starts), `yardstick` (`Dust Bandit`).

@@ -1,6 +1,6 @@
 {
   "id": "squad.arena",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "apiVersion": 2,
   "gameVersion": ">=0.24.0",
   "assemblies": [
