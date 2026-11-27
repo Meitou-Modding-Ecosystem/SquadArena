@@ -123,6 +123,9 @@ one baseline fighter. One Dust Bandit is `pointsPerYardstick` points (default 10
 | `statSweeps` | one option per level, setting every listed stat to it; the sweep's `name` is the group |
 | `seed` | picks the mixes (default 1) |
 
+A starter sheet, every name checked against a full mod list: [examples/melee-basics.price.json](../examples/melee-basics.price.json) (31
+fighters, about 310 fights).
+
 `price` rates the baseline and the baseline with each option (and with `--mixes N`, N fighters with one option from each of two or more
 groups), each up to `--fights` fights against Dust Bandits; only the fights a fighter lacks are fought, so a stopped run carries on.
 `--plan` lists the fighters without fighting; `--table` prints the list from the fights so far.
