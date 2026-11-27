@@ -66,6 +66,23 @@ sealed record Settings
     public float TimeoutSeconds { get; init; } = 300;
 
     /// <summary>
+    /// Minutes a load of the arena save may take before the tool gives up (a save loads in about 20 s on a gaming PC; a first load on a machine
+    /// without a GPU takes about 10 minutes).
+    /// </summary>
+    public double LoadMinutes { get; init; } = 3;
+
+    /// <summary>
+    /// Real minutes to wait for one fight's result; null: the fight's game time at speed 5 doubled, plus a minute. A machine that can't run the
+    /// game at speed 5 (no GPU) needs more.
+    /// </summary>
+    public double? FightWaitMinutes { get; init; }
+
+    /// <summary>
+    /// Extra arguments for the game the tool starts, e.g. a small <c>--size</c> and <c>--low-end</c> on a machine without a GPU.
+    /// </summary>
+    public string[] GameArgs { get; init; } = [];
+
+    /// <summary>
     /// The yardstick character: the one squads are measured in.
     /// </summary>
     public string Yardstick { get; init; } = "Dust Bandit";

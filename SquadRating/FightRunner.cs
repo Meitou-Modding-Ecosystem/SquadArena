@@ -70,11 +70,13 @@ sealed class FightRunner(GameSession game, ArenaFolders arena, FightHistory hist
     }
 
     /// <summary>
-    /// Waits for the result: the fight's game time at speed 5, plus a minute for the spawn, before giving up.
+    /// Waits for the result: <see cref="Settings.FightWaitMinutes"/>, else twice the fight's game time at speed 5 plus a minute for the spawn,
+    /// before giving up.
     /// </summary>
     FightResult AwaitResult(FightRequest request)
     {
-        var limit = TimeSpan.FromSeconds(60 + request.TimeoutSeconds / 5 * 2);
+        var atSpeedFive = TimeSpan.FromSeconds(60 + request.TimeoutSeconds / 5 * 2);
+        var limit = settings.FightWaitMinutes is { } minutes ? TimeSpan.FromMinutes(minutes) : atSpeedFive;
         var elapsed = Stopwatch.StartNew();
         while (elapsed.Elapsed < limit)
         {

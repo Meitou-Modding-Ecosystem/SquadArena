@@ -10,9 +10,9 @@ namespace SquadRating;
 sealed class GameSession : IDisposable
 {
     /// <summary>
-    /// How long a load may take (a save loads in about 20 s; a slow disk takes longer).
+    /// How long a load may take (<see cref="Settings.LoadMinutes"/>).
     /// </summary>
-    static readonly TimeSpan LoadTimeout = TimeSpan.FromMinutes(3);
+    readonly TimeSpan _loadTimeout;
 
     /// <summary>
     /// The channel to the game.
@@ -32,10 +32,11 @@ sealed class GameSession : IDisposable
     /// <summary>
     /// A session on <paramref name="channel"/>, the game already running (attached) or started as <paramref name="process"/>.
     /// </summary>
-    GameSession(ControlChannel channel, string save, Process? process)
+    GameSession(ControlChannel channel, Settings settings, Process? process)
     {
         Channel = channel;
-        _save = save;
+        _save = settings.Save;
+        _loadTimeout = TimeSpan.FromMinutes(settings.LoadMinutes);
         _process = process;
     }
 
@@ -53,10 +54,20 @@ sealed class GameSession : IDisposable
         var start = new ProcessStartInfo(exe) { WorkingDirectory = Path.GetDirectoryName(Path.GetFullPath(exe))!, UseShellExecute = false };
         foreach (string a in new[] { "--control-dir", channel.Directory, "--load", saveFolder, settings.Headless ? "--headless" : "--windowed" })
             start.ArgumentList.Add(a);
+        foreach (string a in settings.GameArgs) start.ArgumentList.Add(a);
 
         Console.WriteLine($"Starting {exe} on '{settings.Save}'{(settings.Headless ? " (headless)" : "")}");
-        var session = new GameSession(channel, settings.Save, Process.Start(start));
-        session.WaitForWorld();
+        var session = new GameSession(channel, settings, Process.Start(start));
+        try
+        {
+            session.WaitForWorld();
+        }
+        catch
+        {
+            session.Dispose();
+            throw;
+        }
+
         return session;
     }
 
@@ -67,7 +78,7 @@ sealed class GameSession : IDisposable
     {
         var channel = new ControlChannel(controlDir);
         if (!channel.Answers()) throw new UsageException($"no game answers on {channel.Directory}; start Meitou with --control-dir \"{channel.Directory}\"");
-        return new GameSession(channel, settings.Save, null);
+        return new GameSession(channel, settings, null);
     }
 
     /// <summary>
@@ -103,14 +114,14 @@ sealed class GameSession : IDisposable
     void WaitForWorld()
     {
         var elapsed = Stopwatch.StartNew();
-        while (elapsed.Elapsed < LoadTimeout)
+        while (elapsed.Elapsed < _loadTimeout)
         {
             if (_process is { HasExited: true }) throw new UsageException($"the game exited (code {_process.ExitCode}); see its log.txt");
             if (Screen() == "world") return;
             Thread.Sleep(1000);
         }
 
-        throw new UsageException($"the game did not show the world within {LoadTimeout.TotalMinutes:0} minutes");
+        throw new UsageException($"the game did not show the world within {_loadTimeout.TotalMinutes:0} minutes (\"loadMinutes\" in squad-rating.json)");
     }
 
     /// <summary>
@@ -142,9 +153,10 @@ sealed class GameSession : IDisposable
         }
         catch (ChannelException)
         {
-            _process.Kill();
         }
 
+        // A game still loading may not take the quit; it is ours, so it is stopped rather than left running.
+        if (!_process.WaitForExit(TimeSpan.FromSeconds(15))) _process.Kill();
         _process.Dispose();
     }
 }
