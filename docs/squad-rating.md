@@ -37,6 +37,7 @@ Run the tool from that folder as `dotnet run --project ..\SquadArena\SquadRating
 | `compare <A> <B> [--fights 10]` | head to head, sides swapped each fight, then both ratings |
 | `bench [--filter <text>] [--fights 8] [--fresh]` | rates every town guard and patrol template at squad size 1; skips templates already rated unless `--fresh` |
 | `report [--csv <file>]` | the ratings from every fight run in this folder |
+| `price <sheet> [--fights 10] [--mixes 0] [--plan] [--table] [--csv <file>]` | prices each option of a point-buy sheet ([Price lists](#price-lists)) |
 | `write-mod <file>` | writes `SquadArena.mod` |
 
 Fighting commands start Meitou on the arena save and quit it at the end. `--attach <folder>` uses a Meitou you started yourself with
@@ -89,6 +90,48 @@ A squad's rating is the count of Dust Bandits (`"yardstick"` in settings) it bea
 down after a loss, steps shrinking from ×1.6 to ×1.15, so fights gather where they say the most. The fit is Bradley–Terry: side A beats side B
 with chance σ(s_A − s_B), a squad's strength s is fitted, n Dust Bandits have s = β·ln n, and the rating is exp(s/β). Every fight in the folder
 counts, `compare` fights too, so squads that never met are still comparable. A draw counts half. The range shown is 90%.
+
+## Price lists
+
+A price sheet (`<name>.price.json`) prices what a point-buy system charges for: races, weapons, armour and stat levels, each as what it adds to
+one baseline fighter. One Dust Bandit is `pointsPerYardstick` points (default 100).
+
+```json
+{
+  "name": "Melee basics",
+  "pointsPerYardstick": 100,
+  "baseline": {
+    "character": "Dust Bandit", "race": "Greenlander",
+    "gear": { "weapon": { "item": "Katana", "maker": "Edgewalkers", "model": "Specialist", "level": 30 },
+              "body": { "item": "Rag Shirt", "quality": 50 } },
+    "stats": { "katanas": 30, "melee attack": 30, "melee defence": 30, "toughness": 30 }
+  },
+  "options": [
+    { "name": "Shek", "race": "Shek" },
+    { "name": "Nodachi", "gear": { "weapon": { "item": "Nodachi", "maker": "Edgewalkers", "model": "Specialist", "level": 30 } } },
+    { "name": "Samurai Armour", "gear": { "body": { "item": "Samurai Armour", "quality": 50 } } },
+    { "name": "Unarmed", "gear": { "weapon": null } }
+  ],
+  "statSweeps": [ { "name": "katana skills", "stats": ["katanas", "melee attack", "melee defence"], "levels": [10, 50, 70, 90] } ]
+}
+```
+
+| Field | Meaning |
+| --- | --- |
+| `baseline` | `character`, `race`, `gear` by slot and `stats`, as in squad files. Slot names are free; `gear` is the whole loadout (none: bare-handed, unarmoured) |
+| `options` | each a `name` and any of `race`, `gear` (slots to replace; `null` empties one) and `stats`. `group` (optional) groups alternatives; without it an option's group is what it changes (`race`, `gear: weapon`, `stats: toughness`) |
+| `statSweeps` | one option per level, setting every listed stat to it; the sweep's `name` is the group |
+| `seed` | picks the mixes (default 1) |
+
+`price` rates the baseline and the baseline with each option (and with `--mixes N`, N fighters with one option from each of two or more
+groups), each up to `--fights` fights against Dust Bandits; only the fights a fighter lacks are fought, so a stopped run carries on.
+`--plan` lists the fighters without fighting; `--table` prints the list from the fights so far.
+
+The fit is the Bradley–Terry model above with a fighter's strength the baseline's plus one effect per option it has, fitted on every fight of
+the sheet's fighters. An option's price is what it adds to the baseline's rating: `points × (exp((b + e)/β) − exp(b/β))`, with a 90% range;
+`x base` is the rating with the option over the baseline's. Prices are exact on top of this baseline: an option on a much stronger fighter is
+worth more points, so price on the baseline your point-buy starts from. Mixes show how well prices add; with mixes, each effect is fitted
+from them too.
 
 ## Bench
 

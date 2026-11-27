@@ -8,7 +8,7 @@ sealed class CommandLine
     /// <summary>
     /// Options that take no value.
     /// </summary>
-    static readonly HashSet<string> Switches = ["headless", "all", "fresh"];
+    static readonly HashSet<string> Switches = ["headless", "all", "fresh", "plan", "table"];
 
     /// <summary>
     /// The options given, by name without the dashes.
